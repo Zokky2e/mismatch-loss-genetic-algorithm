@@ -12,12 +12,13 @@ base_dir = Path(__file__).resolve().parent.parent
 # Define input and output files with dynamically constructed paths
 input_file = base_dir / 'dataset.csv'
 output_file = base_dir / 'new_solar_panels.csv'
-starting_impp_solar_panels = base_dir / 'starting_impp_solar_panels.csv'
-starting_umpp_solar_panels = base_dir / 'starting_umpp_solar_panels.csv'
-starting_pmpp_solar_panels = base_dir / 'starting_pmpp_solar_panels.csv'
 
 # Step 1: Import solar panel data
 solarPanels = importPanels(str(input_file))
+
+starting_impp_solar_panels = base_dir / 'starting_impp_solar_panels.csv'
+starting_umpp_solar_panels = base_dir / 'starting_umpp_solar_panels.csv'
+starting_pmpp_solar_panels = base_dir / 'starting_pmpp_solar_panels.csv'
 
 # Parameters for the genetic algorithm
 population_size = 2000       # Number of configurations in each generation
@@ -40,7 +41,8 @@ best_configuration = doAlgorithm(
     M=M, 
     N=N
 )
-# Step 1.5: Starting configurations sorted by parameters
+
+# Step 2.5: Starting configurations sorted by parameters
 doIMPPConfiguration(solarPanels, C, L, M, N, "impp", starting_impp_solar_panels, False)
 doUMPPConfiguration(solarPanels, C, L, M, N, "umpp", starting_umpp_solar_panels, False)
 doPMPPConfiguration(solarPanels, C, L, M, N, "pmpp", starting_pmpp_solar_panels, False)
