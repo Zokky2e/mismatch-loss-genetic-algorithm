@@ -1,7 +1,7 @@
 from enum import Enum
 from SolarPanel import SolarPanel
 
-#Types of sort in genetic algorthim
+#Types of sort in genetic algorithm
 class SortType(Enum):
     SHUFFLE = 0,
     IMPP = 1,
