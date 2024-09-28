@@ -9,7 +9,7 @@ def calculate_mismatch_loss(
     Calculate the mismatch loss for a single series block of solar panels.
     """
     T = L * M * N
-    sigma_eta_squared_total = np.var([panel.impp for panel in flattened_panels])
+    sigma_eta_squared_total = np.var([panel.ipv for panel in flattened_panels])
     sigma_xi_squared_total = np.var([panel.umpp for panel in flattened_panels])
     fractional_loss = (C + 2) / 2 * (
             sigma_eta_squared_total * (1 - 1 / L) 

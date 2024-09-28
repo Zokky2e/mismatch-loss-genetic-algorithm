@@ -8,6 +8,8 @@ def importPanels(location) -> list[SolarPanel]:
     with open(location, mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
+            lieferung = row['Lieferung'] if 'Lieferung' in row else ""
+
             solar_panel = SolarPanel(
                 row['Serialnummer'], 
                 row['Bezeichnung'], 
@@ -21,7 +23,7 @@ def importPanels(location) -> list[SolarPanel]:
                 float(row['IMPP']), 
                 float(row['FF']), 
                 row['Palettennummer'], 
-                row['Lieferung']
+                lieferung
             )
             solar_panels.append(solar_panel)
 

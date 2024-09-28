@@ -19,6 +19,11 @@ class SolarPanel:
         self.ff = ff
         self.palettennummer = palettennummer
         self.lieferung = lieferung
+        self.a = 0
+        self.i0 = 0
+        self.ipv = 0
+        self.rs = 0
+        self.rp = 0
 
     def __repr__(self):
         return (

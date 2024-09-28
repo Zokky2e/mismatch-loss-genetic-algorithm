@@ -3,7 +3,7 @@ from SolarPanel import SolarPanel
 from exportSolarPanels import exportPanels
 from mismatchCalculations import *
 from sharedMethods import *
-
+import numpy as np
 
 def printConfiguration(
     top_iteration: list[list[list[SolarPanel]]],
@@ -53,9 +53,14 @@ def initialize_first_population(
     return configuration
 
 
+def doSHUFFLEConfiguration(solarPanels: list[SolarPanel], C, L, M, N, config, output_file, printSerialNumbers):
+    sorted_solar_panels = np.array(solarPanels)
+    np.random.shuffle(sorted_solar_panels)
+    doFirstConfiguration(list(sorted_solar_panels), C, L, M, N, config, output_file, printSerialNumbers)
+
 def doIMPPConfiguration(solarPanels: list[SolarPanel], C, L, M, N, config, output_file, printSerialNumbers):
     sorted_solar_panels = sorted(solarPanels, key=lambda x: x.impp, reverse=True)
-    doFirstConfiguration(sorted_solar_panels, C, L, M, N, config, output_file, printSerialNumbers)
+    doFirstConfiguration(list(sorted_solar_panels), C, L, M, N, config, output_file, printSerialNumbers)
 
 def doUMPPConfiguration(solarPanels: list[SolarPanel], C, L, M, N, config, output_file, printSerialNumbers):
     sorted_solar_panels = sorted(solarPanels, key=lambda x: x.umpp, reverse=True)
