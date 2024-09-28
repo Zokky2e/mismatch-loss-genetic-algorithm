@@ -9,6 +9,7 @@ def printConfiguration(
     top_iteration: list[list[list[SolarPanel]]],
     C: float, L: int, M: int, N: int, config, printSerialNumbers
 ):
+    top_iteration = reconstruct_configuration((flatten_panels_recursively(top_iteration)), L, M, N)
     counter = 0
     cc = 0
     total_loss = 0

@@ -1,15 +1,12 @@
 import csv
-
 from SolarPanel import SolarPanel
 
 def importPanels(location) -> list[SolarPanel]:
     solar_panels = []
-
     with open(location, mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             lieferung = row['Lieferung'] if 'Lieferung' in row else ""
-
             solar_panel = SolarPanel(
                 row['Serialnummer'], 
                 row['Bezeichnung'], 

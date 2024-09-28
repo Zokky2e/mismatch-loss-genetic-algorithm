@@ -5,20 +5,21 @@ from scipy.optimize import fsolve
 from SolarPanel import SolarPanel
 
 def extraction(solarPanel: SolarPanel, number_of_cells: int):
-	q = 1.6e-19 #constant
-	k = 1.38e-23 #constant
-	T = 298 #constant
-	Isc = solarPanel.isc  #csv ISC
-	Voc = solarPanel.uoc #csv UOC
-	Imp = solarPanel.impp #csv IMPP
-	Vmp = solarPanel.umpp #csv UMPP
-	N = number_of_cells #number of cells of module
-	Pmax = Vmp*Imp #csv PMPP
+	q = 1.6e-19
+	k = 1.38e-23
+	T = 298
+	Isc = solarPanel.isc
+	Voc = solarPanel.uoc
+	Imp = solarPanel.impp
+	Vmp = solarPanel.umpp
+	N = number_of_cells
+	Pmax = Vmp*Imp
 	A = solarPanel.ff/100
 	Vt = (k*A*T*N)/q
 	Rs =  (Voc/Imp) - (Vmp/Imp) + ((Vt/Imp)*math.log((Vt)/(Vt + Vmp)))
 	I0 = Isc/(np.exp(Voc/Vt)) - np.exp(Rs*Isc/Vt)
 	Ipv = I0 * (np.exp(Voc/Vt) - 1)
+
 	#firstStep
 	iter = 10000
 	it = 0
@@ -41,6 +42,7 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		it += 1
 	vt1 = (k * A1 * T * N) / q
 	Rs1 = (Voc / Imp) - (VmpC / Imp) + ((vt1 / Imp) * np.log(vt1 / (vt1 + VmpC)))
+
 	#secondStep
 	tolI = 0.001
 	iter = 10000
