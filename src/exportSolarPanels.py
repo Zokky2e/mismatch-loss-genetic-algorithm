@@ -12,10 +12,6 @@ def exportPanels(solarPanels: list[SolarPanel], output_location):
         for panel in solarPanels:
             writer.writerow({
                 'Serialnummer': panel.serialnumber,
-                'Bezeichnung': panel.bezeichnung,
-                'ArticleNr.': panel.articlenr,
-                'Datum': panel.datum,
-                'Fertigungsauftrag': panel.fertigungsauftrag,
                 'PMPP': panel.pmpp,
                 'UOC': panel.uoc,
                 'ISC': panel.isc,
@@ -23,7 +19,6 @@ def exportPanels(solarPanels: list[SolarPanel], output_location):
                 'IMPP': panel.impp,
                 'FF': panel.ff,
                 'Palettennummer': panel.palettennummer,
-                'Lieferung': panel.lieferung
             })
 
     return 1

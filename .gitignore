@@ -2,3 +2,4 @@
 .prettierrc
 __pycache__
 .vscode
+curves
