@@ -1,20 +1,16 @@
 from math import exp, log
 import numpy as np
 from scipy.optimize import fsolve, brentq
-
+import matplotlib.pyplot as plt
 from SolarPanel import SolarPanel
-from sharedMethods import compute, computeArray, do_Array_Current_Calc, do_Array_Voltage_Calc, do_Current_Calc, do_Voltage_Calc
+from sharedMethods import compute, do_Current_Calc, do_Voltage_Calc
 
 def extraction(solarPanel: SolarPanel, number_of_cells: int):
 	q = 1.6e-19
 	k = 1.38e-23
 	T = 298
-	Isc = solarPanel.isc
-	Voc = solarPanel.uoc
-	Imp = solarPanel.impp
-	Vmp = solarPanel.umpp
-	N = number_of_cells
-	Pmax = Vmp*Imp
+	Isc, Voc, Imp, Vmp = solarPanel.isc, solarPanel.uoc, solarPanel.impp, solarPanel.umpp
+	N, Pmax = number_of_cells, Vmp*Imp
 	A = solarPanel.ff/100
 	if (solarPanel.ff < 1.0):
 		A = solarPanel.ff
@@ -36,7 +32,6 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 			A1 -= 0.01
 		else:
 			A1 += 0.01
-
 		Vt1 = (k * A1 * T * N) / q
 		I01 = Isc / (np.exp(Voc / Vt1) - np.exp(Rs1 * Isc / Vt1))
 		Ipv1 = I01 * (np.exp(Voc / Vt1) - 1)
@@ -68,15 +63,14 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		def eqn(ImpC):
 			return Ipv2 - (I02 * (np.exp((Vmp + (Rs1 * ImpC)) / vt1) - 1)) - ImpC - (Vmp + Rs1 * ImpC) / Rpnew
 		current_c = Imp
-		ImpC = fsolve(eqn, current_c)[0]  # Using fsolve to solve the equation
+		ImpC = fsolve(eqn, current_c)[0]
 		itI += 1
 		err = abs(Imp - ImpC)
 
 	#thirdStep
 	vt_new = (k*A1*T*N)/q
-	tolerance = 1e-6  # Convergence tolerance
-	max_iterations = 1000  #Safety to avoid infinite loop
-	# Iteratively find I
+	tolerance = 1e-6
+	max_iterations = 1000
 	previous_I = solarPanel.impp
 	iterations = 0
 	while iterations < max_iterations:
@@ -89,9 +83,9 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		iterations += 1
 	I_solution = new_I
 
-	#thirdStep
-	tolerance = 1e-6  # Convergence tolerance
-	max_iterations = 1000  #Safety to avoid infinite loop
+	#forthStep
+	tolerance = 1e-6
+	max_iterations = 1000
 	# Iteratively find I
 	previous_V = solarPanel.uoc
 	iterations = 0
@@ -105,33 +99,18 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		iterations += 1
 	V_solution = new_V
 
-	solarPanel.u = V_solution
-	solarPanel.i = I_solution
-	solarPanel.p = V_solution * I_solution
-	solarPanel.a = A1
-	solarPanel.i0 = I02
-	solarPanel.ipv = Ipv2
-	solarPanel.rs = Rs1
-	solarPanel.rp = Rpnew
+	solarPanel.u, solarPanel.i, solarPanel.p = V_solution, I_solution, V_solution * I_solution
+	solarPanel.a, solarPanel.i0, solarPanel.ipv, = A1, I02, Ipv2
+	solarPanel.rs, solarPanel.rp = Rs1, Rpnew
 	return solarPanel
 
-import matplotlib.pyplot as plt
 def plotPanel(solarPanel: SolarPanel):
-    # Function to compute V iteratively for a given I
-	
-	I_values = np.linspace(0, solarPanel.isc, 10000)  # 100 current points between 0 and I_pv
+	I_values = np.linspace(0, solarPanel.isc, 10000)
 	V_values = []
 	P_values = []
-	q = 1.6e-19
-	k = 1.38e-23
-	T = 298
-	N = 60
-	vt_new = (k*solarPanel.a*T*N)/q
-	# Calculate the voltage for each current
 	for I in I_values:
 		V = compute(I, solarPanel, do_Voltage_Calc)
 		V_values.append(V)
-	
 
 	plt.figure(figsize=(8, 6))
 	V_values[-1] = 0
@@ -140,13 +119,13 @@ def plotPanel(solarPanel: SolarPanel):
 	plt.title('U-I Curve for the Solar Panel')
 	plt.ylabel('Current [A]')
 	plt.xlabel('Voltage [V]')
-	plt.xlim(0, 50)  # Set x-axis from 0 to maximum voltage
+	plt.xlim(0, 50)
 	plt.ylim(0, 10)
 	plt.grid(True)
 	plt.legend()
 	plt.savefig('UICurve.png', dpi=300, bbox_inches='tight')
 
-	V_values = np.linspace(0, solarPanel.uoc, 100000)
+	V_values = np.linspace(0, solarPanel.uoc, 10000)
 	for V in V_values:
 		I_solution = compute(V, solarPanel, do_Current_Calc, 0.0, 10000)
 		P_values.append(float(V)*float(I_solution))
@@ -162,40 +141,3 @@ def plotPanel(solarPanel: SolarPanel):
 	plt.grid(True, which='both', linestyle='--', linewidth=0.7)
 	plt.savefig('PVCurve.png', dpi=300, bbox_inches='tight')
 	plt.show()
-
-
-def current_from_voltage(U, U_max, I_max):
-    I = I_max * (1 - np.exp((U - U_max) / (0.05 * U_max)))  # Exponential decay
-    return I
-
-from scipy.optimize import curve_fit
-def plotPanelGroup(index: int, max_voltage: float, max_current: float, max_power: float, group: list[SolarPanel]):
-    # Function to compute V iteratively for a given I
-	q = 1.6e-19
-	k = 1.38e-23
-	T = 298
-	voc = sum([panel.uoc for panel in group])
-	rs = max_voltage / max_current
-	isc = min([panel.isc for panel in group])
-	rp = 1 / sum(1 / panel.rp for panel in group)
-	ipv = min([panel.ipv for panel in group])
-	a = np.mean([panel.a for panel in group])
-	V_values = np.linspace(max_voltage, voc, 100000)
-	i0 = max([panel.i0 for panel in group])
-	I_values = [computeArray(V,isc,voc,max_voltage,max_current, rs, rp, a, do_Array_Current_Calc) for V in V_values]
-	P_values = V_values * I_values  # P = V * I
-	print(max(P_values))
-	plt.figure(figsize=(8, 6))
-	plt.plot(V_values, I_values, label='U-I Characteristic', color='blue', linewidth=2)
-	plt.title('U-I Characteristic of the Group of 20 Panels', fontsize=16, fontweight='bold')
-	plt.xlabel('Voltage (V)', fontsize=12)
-	plt.ylabel('Current (A)', fontsize=12)
-	plt.grid(True, which='both', linestyle='--', linewidth=0.7)
-	plt.savefig(f'curves/U-I_Curve{index}.png', dpi=300, bbox_inches='tight')
-	plt.figure(figsize=(8, 6))
-	plt.plot(V_values, P_values, label='U-I Characteristic', color='red', linewidth=2)
-	plt.title('P-V Characteristic of the Group of 20 Panels', fontsize=16, fontweight='bold')
-	plt.xlabel('Voltage (V)', fontsize=12)
-	plt.ylabel('Power (W)', fontsize=12)
-	plt.grid(True, which='both', linestyle='--', linewidth=0.7)
-	plt.savefig(f'curves/P-V_Curve{index}.png', dpi=300, bbox_inches='tight')

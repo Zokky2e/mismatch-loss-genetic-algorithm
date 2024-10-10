@@ -1,8 +1,8 @@
-from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from SolarPanel import SolarPanel
-from sharedMethods import compute, do_Voltage_Calc  # Import the SolarPanel class
+from sharedMethods import compute, do_Voltage_Calc
 from scipy.optimize import fsolve
+import matplotlib.pyplot as plt
 
 def calculate_mismatch_loss(
     flattened_panels: list[SolarPanel], 
@@ -11,11 +11,8 @@ def calculate_mismatch_loss(
     """
     Calculate the mismatch loss for a single series block of solar panels.
     """
-    #print(max_values)
-    #fake_max_values
     group1 = flattened_panels[:L]
     group2 = flattened_panels[L:]
-    #print(len(group1), len(group2))
     # Use fsolve to solve for C
     ff = np.average([panel.ff for panel in flattened_panels])
     ff1 = np.average([panel.ff for panel in group1])
@@ -40,8 +37,6 @@ def calculate_mismatch_loss(
         initial_guess, 
         args=(ff2)
     )
-    #print(C, C1, C2)
-    
     p_group1 = [panel.umpp*panel.impp for panel in group1]
     p_group2 = [panel.umpp*panel.impp for panel in group2]
     umpp_values = [panel.umpp for panel in flattened_panels]
@@ -52,10 +47,8 @@ def calculate_mismatch_loss(
         max_values[1] = np.mean(i_group1)
         max_values[2] = np.mean(i_group2)
         max_values[3] = np.mean([panel.impp*panel.umpp for panel in flattened_panels])
-
     p_ideal1 = np.sum(p_group1)
     p_ideal2 = np.sum(p_group2)
-    #print(p_ideal1, p_ideal2)
     sigma_v = (np.std(umpp_values)/max_values[0])**2
     sigma_i1 = (np.std(i_group1)/max_values[1])**2
     sigma_i2 = (np.std(i_group2)/max_values[2])**2
@@ -63,12 +56,14 @@ def calculate_mismatch_loss(
     beta1 = (p_ideal1/max_values[3]) * (C1[0]+2) * sigma_i1
     beta2 = (p_ideal2/max_values[3]) * (C2[0]+2) * sigma_i2
     beta = 0.5 * (beta1 + beta2)
-    #print(sigma_v, sigma_i1, sigma_i2, beta)
     gamma = 0.5 * (C[0]+2) * sigma_v/L * (1-1/M)
-    
-    #print(alfa, beta1, beta2, gamma)
     mismatch_loss = alfa * beta + gamma
     return float(mismatch_loss * 100)
+
+def find_C(C, FF):
+    # Fill factor formula with C
+    equation = (C**2 / ((1 + C) * (C + np.log(1 + C)))) - FF
+    return equation
 
 def average_max_value(g1: list[SolarPanel], g2: list[SolarPanel]):
     max_values_groups = [find_max_values_of_group(g1), find_max_values_of_group(g2)]
@@ -80,11 +75,6 @@ def average_max_value(g1: list[SolarPanel], g2: list[SolarPanel]):
     avg_max_values[3] = float(np.sum([(max_values_groups[0][2] + max_values_groups[1][2])])/total_len)
     return avg_max_values
 
-def group_panels(solarPanels: list[SolarPanel], L: int) -> list[list[SolarPanel]]:
-    return [solarPanels[i:i + L] for i in range(0, len(solarPanels) - len(solarPanels) % L, L)]
-
-import time
-import matplotlib.pyplot as plt
 def find_max_values_of_group(groupedPanels: list[SolarPanel], group = -1) -> list[float]:
     space = 100
     max_values = [0.0,0.0,0.0] #U I P
@@ -105,26 +95,23 @@ def find_max_values_of_group(groupedPanels: list[SolarPanel], group = -1) -> lis
             P_values.append(v*I)
             V_values.append(v)
     if (group >= 0):
-        fig, ax1 = plt.subplots()
-        ax1.plot(V_values, I_values, label='U-I', color='r', linewidth=2)
-        plt.title('U-I Curve & P-U Curve for the Group')
-        ax1.set_ylabel('Current [A]')
-        ax1.set_xlabel('Voltage [V]')
-        plt.xlim(0, np.sum([panel.uoc for panel in groupedPanels])+50)
-        ax1.set_ylim(0, 10)
-        ax2 = ax1.twinx() 
-        ax2.plot(V_values, P_values, label='P-U', color='b', linewidth=2)
-        ax2.set_ylabel('Power [W]',)
-        ax2.set_xlabel('Voltage [V]')
-        ax2.set_ylim(0, np.sum([panel.pmpp for panel in groupedPanels])+200)
-        ax1.grid(True)
-        fig.legend(loc='lower right')
-        ax2.grid(False)
-        plt.savefig(f'curves/UICurve{group}.png', dpi=300, bbox_inches='tight')
+        drawCurve(V_values, I_values, P_values, groupedPanels, group)
     return [round(float(value), 5) for value in max_values]
 
-
-def find_C(C, FF):
-    # Fill factor formula with C
-    equation = (C**2 / ((1 + C) * (C + np.log(1 + C)))) - FF
-    return equation
+def drawCurve(V_values, I_values, P_values, groupedPanels, group):
+    fig, ax1 = plt.subplots()
+    ax1.plot(V_values, I_values, label='U-I', color='r', linewidth=2)
+    plt.title('U-I Curve & P-U Curve for the Group')
+    ax1.set_ylabel('Current [A]')
+    ax1.set_xlabel('Voltage [V]')
+    plt.xlim(0, np.sum([panel.uoc for panel in groupedPanels])+50)
+    ax1.set_ylim(0, 10)
+    ax2 = ax1.twinx() 
+    ax2.plot(V_values, P_values, label='P-U', color='b', linewidth=2)
+    ax2.set_ylabel('Power [W]',)
+    ax2.set_xlabel('Voltage [V]')
+    ax2.set_ylim(0, np.sum([panel.pmpp for panel in groupedPanels])+200)
+    ax1.grid(True)
+    fig.legend(loc='lower right')
+    ax2.grid(False)
+    plt.savefig(f'curves/UICurve{group}.png', dpi=300, bbox_inches='tight')

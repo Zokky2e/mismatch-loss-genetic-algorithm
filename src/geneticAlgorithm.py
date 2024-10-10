@@ -80,10 +80,8 @@ def selection(
     fitness_scores = Parallel(n_jobs=-1, backend="loky")(
         delayed(fitness)(config, L, M) for config in population
     )
-    # Combine fitness with the population for sorting
     population_with_fitness: List = list(zip(fitness_scores, population))
     population_with_fitness.sort(key=lambda x: x[0], reverse=True)
-    
     retain_length = len(population) // 2
     selected_population = [x[1] for x in population_with_fitness[:retain_length]]
     return selected_population
@@ -109,7 +107,6 @@ def crossover(
     if total_panels < required_panels:
         full_configs_possible = total_panels // L
         child_set = child_set[:full_configs_possible]
-    
     for panel in missing_panels:
         added = False
         for substring in child_set:
@@ -167,10 +164,16 @@ def doAlgorithm(
         if len(population) > population_size:
             population = population[:population_size]
         top_sets.extend(population)
-        top_sets = sorted(population, key=lambda config: fitness(config, L, M), reverse=True)[:10]
-        total_loss = 0.0  
-        index = 0
-        if (generation%10 == 0):
+        # Parallel execution of fitness calculation
+        top_sets = Parallel(n_jobs=-1, backend="loky")(
+            delayed(fitness)(config, L, M) for config in population
+        )
+        population_with_fitness : List = list(zip(top_sets, population))
+        population_with_fitness.sort(key=lambda x: x[0], reverse=True)
+        top_sets = [config for fitness_score, config in population_with_fitness[:10]]
+        if (generation%10 == 0): #print out every 10 generations
+            total_loss = 0.0  
+            index = 0
             print(len(flatten_panels_recursively(top_sets[0])))
             while (index+1< len(top_sets[0])):
                 g1 = top_sets[0][index]
@@ -179,7 +182,6 @@ def doAlgorithm(
                 flattened_group1 = flatten_panels_recursively(g1)
                 flattened_group2 = flatten_panels_recursively(g2)
                 flattened_group = flattened_group1 + flattened_group2
-                #group_loss = calculate_mismatch_loss(flattened_group, L, M)
                 group_loss = calculate_mismatch_loss(flattened_group, L, M, avg_max_values)
                 total_loss += group_loss
                 index += 2
@@ -190,4 +192,3 @@ def doAlgorithm(
     dup = has_duplicate_panels(flatten_panels_recursively(winner))
     print(f"Winner has {dup} duplicates.")
     return population
-

@@ -6,7 +6,6 @@ def exportPanels(solarPanels: list[SolarPanel], output_location):
         fieldnames = ['Serialnummer', 'Bezeichnung', 'ArticleNr.', 
                     'Datum', 'Fertigungsauftrag', 'PMPP', 'UOC', 'ISC', 'UMPP', 
                     'IMPP', 'FF', 'Palettennummer', 'Lieferung']
-        
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for panel in solarPanels:
