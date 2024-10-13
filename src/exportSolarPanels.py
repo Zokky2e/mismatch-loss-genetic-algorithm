@@ -3,9 +3,8 @@ from SolarPanel import SolarPanel
 
 def exportPanels(solarPanels: list[SolarPanel], output_location):
     with open(output_location, mode='w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['Serialnummer', 'Bezeichnung', 'ArticleNr.', 
-                    'Datum', 'Fertigungsauftrag', 'PMPP', 'UOC', 'ISC', 'UMPP', 
-                    'IMPP', 'FF', 'Palettennummer', 'Lieferung']
+        fieldnames = ['Serialnummer', 'PMPP', 'UOC', 'ISC', 'UMPP', 
+                    'IMPP', 'FF', 'Palettennummer']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for panel in solarPanels:
@@ -19,6 +18,5 @@ def exportPanels(solarPanels: list[SolarPanel], output_location):
                 'FF': panel.ff,
                 'Palettennummer': panel.palettennummer,
             })
-
     return 1
 
