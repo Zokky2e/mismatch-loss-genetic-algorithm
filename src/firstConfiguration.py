@@ -12,14 +12,14 @@ def printConfiguration(
     counter = 0
     cc = 0
     total_loss = 0
-    print(f"{config} configuration({cc}) total mismatch lost: {round(total_loss, 4)}")
-    for group in configuration:
-        total_loss+= calculate_mismatch_loss(flatten_panels_recursively(group), L, M)
-        for substring in group:
-            print("[")
-            for panel in substring: # type: ignore
-                print(f"{panel.serialnumber}: {panel.impp}")
-            print("],")
+    print(f"{config} sorted configuration")
+    for i in range(len(configuration)//2):
+        fi = i * 2
+        si = fi + 1
+        total_loss+= calculate_mismatch_loss(
+            flatten_panels_recursively(configuration[fi])
+            +flatten_panels_recursively(configuration[si]),
+            L, M)
     print(f"mismatch loss: {total_loss:.9f}")
 
 def initialize_first_population(
@@ -45,6 +45,10 @@ def doUMPPConfiguration(solarPanels: list[SolarPanel], L, M, config, output_file
 
 def doPMPPConfiguration(solarPanels: list[SolarPanel], L, M, config, output_file):
     sorted_solar_panels = sorted(solarPanels, key=lambda x: x.pmpp, reverse=True)
+    doFirstConfiguration(sorted_solar_panels, L, M, config, output_file)
+
+def doSNConfiguration(solarPanels: list[SolarPanel], L, M, config, output_file):
+    sorted_solar_panels = sorted(solarPanels, key=lambda x: x.serialnumber, reverse=True)
     doFirstConfiguration(sorted_solar_panels, L, M, config, output_file)
 
 def doFirstConfiguration(solarPanels: list[SolarPanel], L, M, config, output_file):

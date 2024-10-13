@@ -19,12 +19,8 @@ def fitness(configuration: list[list[SolarPanel]], L: int, M: int) -> float:
     while (index+1 < len(configuration)):
         g1 = configuration[index]
         g2 = configuration[index+1]
-        avg_max_values = average_max_value(g1, g2)
-        flattened_group1 = flatten_panels_recursively(g1)
-        flattened_group2 = flatten_panels_recursively(g2)
-        flattened_group = flattened_group1 + flattened_group2
-        group_loss = calculate_mismatch_loss(flattened_group, L, M, avg_max_values)
-        total_loss += group_loss
+        flattened_group = flatten_panels_recursively(g1) + flatten_panels_recursively(g2)
+        total_loss += calculate_mismatch_loss(flattened_group, L, M, average_max_value(g1, g2))
         index += 2
     fitness_score = 1 / (total_loss + 1e-6)  # Adding a small value to prevent division by zero
     return float(fitness_score)
@@ -192,3 +188,4 @@ def doAlgorithm(
     dup = has_duplicate_panels(flatten_panels_recursively(winner))
     print(f"Winner has {dup} duplicates.")
     return population
+

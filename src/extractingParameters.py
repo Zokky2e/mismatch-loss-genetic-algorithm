@@ -18,7 +18,6 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 	Rs =  (Voc/Imp) - (Vmp/Imp) + ((Vt/Imp)*log((Vt)/(Vt + Vmp)))
 	I0 = Isc/(np.exp(Voc/Vt)) - np.exp(Rs*Isc/Vt)
 	Ipv = I0 * (np.exp(Voc/Vt) - 1)
-
 	#firstStep
 	iter = 10000
 	it = 0
@@ -39,8 +38,7 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		e1 = VmpC - Vmp
 		it += 1
 	vt1 = (k * A1 * T * N) / q
-	Rs1 = (Voc / Imp) - (VmpC / Imp) + ((vt1 / Imp) * np.log(vt1 / (vt1 + VmpC)))
-
+	Rs1 = (Voc / Imp) - (VmpC / Imp) + ((vt1 / Imp) * log(vt1 / (vt1 + VmpC)))
 	#secondStep
 	tolI = 0.001
 	iter = 10000
@@ -66,7 +64,6 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		ImpC = fsolve(eqn, current_c)[0]
 		itI += 1
 		err = abs(Imp - ImpC)
-
 	#thirdStep
 	vt_new = (k*A1*T*N)/q
 	tolerance = 1e-6
@@ -82,7 +79,6 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		previous_I = new_I
 		iterations += 1
 	I_solution = new_I
-
 	#forthStep
 	tolerance = 1e-6
 	max_iterations = 1000
@@ -98,7 +94,6 @@ def extraction(solarPanel: SolarPanel, number_of_cells: int):
 		previous_V = new_V
 		iterations += 1
 	V_solution = new_V
-
 	solarPanel.u, solarPanel.i, solarPanel.p = V_solution, I_solution, V_solution * I_solution
 	solarPanel.a, solarPanel.i0, solarPanel.ipv, = A1, I02, Ipv2
 	solarPanel.rs, solarPanel.rp = Rs1, Rpnew

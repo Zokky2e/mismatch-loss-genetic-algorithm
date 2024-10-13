@@ -21,10 +21,10 @@ def main():
     if platform.system() == "Windows":
         base_dir = Path(__file__).resolve().parent.parent
         input_file = base_dir / 'longi-dataset.csv'
-        output_file = base_dir / 'new_solar_panels_LONGI-10000.csv'
+        output_file = base_dir / 'new_solar_panels.csv'
     else:
         input_file = 'longi-dataset.csv'
-        output_file = 'new_solar_panels_LONGI-10000.csv'
+        output_file = 'new_solar_panels.csv'
 
     # Step 1: Import solar panel data
     solarPanels = importPanels(str(input_file))
